@@ -1,0 +1,48 @@
+ syntax = "proto3";
+
+// для генерации сервиса:
+// protoc --go_out=plugins=grpc:. *.proto
+
+// у вас должен быть установлен protoc 
+// полученный код при загрузки в автогрейдер надо будет положить в service.go
+// на время тестов можно ничего не делать
+
+package main;
+
+message Event {
+    int64  timestamp = 1;
+    string consumer  = 2;
+    string service    = 3;
+    string host      = 4;
+}
+
+message Stat {
+    int64               timestamp   = 1;
+    map<string, uint64> by_service  = 2;
+}
+
+message StatInterval {
+    uint64              interval_seconds   = 1;
+}
+
+message Nothing {
+    bool dummy = 1;
+}
+
+message Request {
+    string Service = 1;
+}
+
+message Response{
+    map<string, int64> service = 1;
+ }
+
+service Admin {
+    rpc Statistics (StatInterval) returns (stream Stat) {}
+}
+
+service Biz {
+    rpc Check(Request) returns(Response) {}
+    rpc Min(Nothing) returns(Response) {}
+    rpc Max(Nothing) returns(Response) {}
+ }
