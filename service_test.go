@@ -48,8 +48,9 @@ func TestServerStartStop(t *testing.T) {
 		t.Fatalf("cant start server initial: %v", err)
 	}
 	wait(1)
+	log.Println("send finish 1")
 	finish() // при вызове этой функции ваш сервер должен остановиться и освободить порт
-	wait(1)
+	wait(30)
 
 	// теперь проверим что вы освободили порт и мы можем стартовать сервер ещё раз
 	ctx, finish = context.WithCancel(context.Background())
@@ -59,8 +60,24 @@ func TestServerStartStop(t *testing.T) {
 		t.Fatalf("cant start server again: %v", err)
 	}
 	wait(1)
+	log.Println("send finish 2")
+
 	finish()
+	close(services)
+	wait(30)
+}
+
+func TestServerStartStop2(t *testing.T) {
+	s := Services{"http://www.google.com","http://ya.ru","http://facebook.com","http://baidu.com", "http://wikipedia.org", "http://qq.com","http://youtube.com"}
+	services := make(chan Services, len(s))
+	services <- s
+	ctx, finish := context.WithCancel(context.Background())
+	err := StartMyMicroservice(ctx, listenAddr, services)
+	if err != nil {
+		t.Fatalf("cant start server initial: %v", err)
+	}
 	wait(1)
+	finish() // при вызове этой функции ваш сервер должен остановиться и освободить порт
 }
 
 
@@ -84,19 +101,6 @@ func TestServerLeak(t *testing.T) {
 
 
 
-func TestServerStartStop2(t *testing.T) {
-	s := Services{"http://www.google.com","http://ya.ru","http://facebook.com","http://baidu.com", "http://wikipedia.org", "http://qq.com"}
-	services := make(chan Services, len(s))
-	services <- s
-	ctx, finish := context.WithCancel(context.Background())
-	err := StartMyMicroservice(ctx, listenAddr, services)
-	if err != nil {
-		t.Fatalf("cant start server initial: %v", err)
-	}
-	wait(700)
-	finish() // при вызове этой функции ваш сервер должен остановиться и освободить порт
-
-}
 
 func TestBizClient_Check(t *testing.T) {
 	s := Services{"http://www.google.com","http://ya.ru","http://facebook.com","http://baidu.com", "http://wikipedia.org", "http://qq.com"}
@@ -129,6 +133,7 @@ func TestBizClient_Check(t *testing.T) {
 	}
 	fmt.Println(resp.Service)
 	finish() // при вызове этой функции ваш сервер должен остановиться и освободить порт
+	wait(30)
 
 }
 
@@ -322,6 +327,6 @@ func TestAdminServerManager_Statistics(t *testing.T) {
 	mu.Unlock()
 
 	finish()
-
+wait(30)
 
 }
